@@ -23,35 +23,63 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final TextEditingController _typeAheadController = TextEditingController();
+  String _selectedCity;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('AutoComplete Flutter'), centerTitle: true),
       body: Container(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 30, 10, 30),
-          child: TypeAheadField(
-            textFieldConfiguration: TextFieldConfiguration(
-                cursorColor: Colors.white,
-                autofocus: true,
-                style: TextStyle(color: Colors.white, fontSize: 15),
-                decoration: InputDecoration(border: OutlineInputBorder())),
-            suggestionsCallback: (pattern) async {
-              return await BackendService.getSuggestions(pattern);
-            },
-            itemBuilder: (context, suggestion) {
-              return ListTile(
-                leading: Icon(Icons.shopping_cart),
-                title: Text(suggestion['name']),
-                subtitle: Text('\$${suggestion['price']}'),
-              );
-            },
-            onSuggestionSelected: (suggestion) {
-              return Container(
-                child: Text(suggestion['name']),
-              );
-            },
-          ),
+        child: Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Text(
+                    'What is your favorite city?',
+                    style: TextStyle(fontSize: 25.0),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: TypeAheadFormField(
+                    textFieldConfiguration: TextFieldConfiguration(
+                        controller: this._typeAheadController,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(), labelText: 'City')),
+                    suggestionsCallback: (pattern) {
+                      return BackendService.getSuggestions(pattern);
+                    },
+                    itemBuilder: (context, suggestion) {
+                      return ListTile(
+                        title: Text(suggestion),
+                      );
+                    },
+                    transitionBuilder: (context, suggestionsBox, controller) {
+                      return suggestionsBox;
+                    },
+                    onSuggestionSelected: (suggestion) {
+                      this._typeAheadController.text = suggestion;
+                    },
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Please select a city';
+                      }
+                    },
+                    onSaved: (value) => this._selectedCity = value,
+                  ),
+                ),
+                RaisedButton(
+                  child: Text('Submit'),
+                  onPressed: () {
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                            'Your Favorite City is ${this._selectedCity}')));
+                  },
+                )
+              ]),
         ),
       ),
     );
