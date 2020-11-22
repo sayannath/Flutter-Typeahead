@@ -1,4 +1,4 @@
-# auto_type
+# Flutter Typeahead
 
 A new Flutter project.
 
